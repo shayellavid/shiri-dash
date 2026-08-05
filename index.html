@@ -200,6 +200,23 @@
   .wk-cal .day.dot::after{content:"";position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--green)}
   .wk-cal .cal-foot{display:flex;justify-content:flex-end;margin-top:8px}
   .wk-cal .cal-foot button{background:transparent;border:none;color:var(--blue);font-size:12px;font-weight:600;cursor:pointer}
+  /* לוח שנה לבחירת שידור */
+  .sess-pick{position:relative;display:inline-block}
+  .sess-btn{background:var(--surface2);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:600}
+  .sess-btn:hover{border-color:var(--green)}
+  .sess-cal{position:absolute;top:calc(100% + 6px);inset-inline-start:0;z-index:70;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;width:min(92vw,420px);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  .sess-cal .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .sess-cal .cal-head b{font-size:14px}
+  .sess-cal .cal-nav{background:var(--surface2);border:1px solid var(--line);color:var(--text);border-radius:6px;width:30px;height:28px;cursor:pointer;font-size:15px}
+  .sess-cal table{width:100%;border-collapse:collapse;table-layout:fixed}
+  .sess-cal th{font-size:11px;color:var(--muted);padding:3px 0;text-align:center;font-weight:700}
+  .sess-cal td{padding:2px;vertical-align:top;text-align:center}
+  .sess-cal .dcell{min-height:42px;border-radius:6px;padding:1px}
+  .sess-cal .dnum{font-size:11px;color:var(--muted);line-height:1.3}
+  .sess-cal .dnum.oth{color:var(--muted2);opacity:.55}
+  .sess-cal .schip{display:block;font-size:10px;background:var(--green-dim);color:var(--green);border:1px solid var(--green);border-radius:5px;padding:1px 2px;margin-top:2px;cursor:pointer;direction:ltr;white-space:nowrap;overflow:hidden}
+  .sess-cal .schip:hover{filter:brightness(1.35)}
+  .sess-cal .schip.sel{background:var(--green);color:#0a0d07;font-weight:700}
 </style>
 <link rel="icon" type="image/jpeg" href="data:image/jpeg;base64,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">
 </head>
@@ -275,7 +292,10 @@
 <section id="curve-section">
   <div class="sess-head">
     <span class="st">עקומת צופים חיים — בחר שידור:</span>
-    <select id="session-select" class="sess-select" onchange="render()"></select>
+    <span class="sess-pick">
+      <button class="sess-btn" id="sess-btn" onclick="toggleSessCal(event)">—</button>
+      <div class="sess-cal" id="sess-cal" style="display:none"></div>
+    </span>
   </div>
   <div class="sess-stat" id="sess-stat"></div>
   <div class="chart">
@@ -536,6 +556,56 @@ function monthDelta(entries,field){
   }
   return {val:latest-base,base,latest};
 }
+
+// ===== לוח שנה לבחירת שידור =====
+let selSess=null, sessCalCur=null;
+const HMONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+function sessList(){ return (window.TRACKER_DATA&&window.TRACKER_DATA.sessions)||[]; }
+function effSel(){ const l=sessList(); return (l.some(s=>s.start===selSess)?selSess:(l[0]&&l[0].start))||null; }
+function toggleSessCal(e){
+  e.stopPropagation();
+  const c=document.getElementById('sess-cal');
+  if(c.style.display==='none'){
+    const cur=sessList().find(s=>s.start===effSel());
+    const d=cur?new Date(cur.start.slice(0,10)):new Date();
+    sessCalCur=new Date(d.getFullYear(),d.getMonth(),1);
+    c.style.display='block'; renderSessCal();
+  } else c.style.display='none';
+}
+function sessCalNav(dir,e){ e.stopPropagation(); sessCalCur=new Date(sessCalCur.getFullYear(),sessCalCur.getMonth()+dir,1); renderSessCal(); }
+function pickSess(start,e){ e.stopPropagation(); selSess=start; document.getElementById('sess-cal').style.display='none'; render(); }
+function renderSessCal(){
+  const c=document.getElementById('sess-cal');
+  const byDay={};
+  sessList().forEach(s=>{ const k=s.start.slice(0,10); (byDay[k]=byDay[k]||[]).push(s); });
+  const y=sessCalCur.getFullYear(), m=sessCalCur.getMonth();
+  const startDay=new Date(y,m,1).getDay();      // 0=ראשון
+  const dim=new Date(y,m+1,0).getDate();
+  let html='<div class="cal-head"><button class="cal-nav" onclick="sessCalNav(-1,event)">‹</button><b>'
+    +HMONTHS[m]+' '+y+'</b><button class="cal-nav" onclick="sessCalNav(1,event)">›</button></div>';
+  html+='<table><tr>'+['א','ב','ג','ד','ה','ו','ש'].map(d=>'<th>'+d+'</th>').join('')+'</tr>';
+  let day=1-startDay;
+  while(day<=dim){
+    html+='<tr>';
+    for(let i=0;i<7;i++,day++){
+      if(day<1||day>dim){ html+='<td><div class="dcell"></div></td>'; continue; }
+      const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+      const list=(byDay[key]||[]).slice().sort((a,b)=>a.start<b.start?-1:1);
+      html+='<td><div class="dcell"><span class="dnum'+(list.length?'':' oth')+'">'+day+'</span>';
+      list.forEach(s=>{
+        html+='<span class="schip'+(s.start===effSel()?' sel':'')+'" onclick="pickSess(\''+s.start+'\',event)" title="'
+          +s.label+'">'+s.start.slice(11)+' · '+fmt(s.peak)+'</span>';
+      });
+      html+='</div></td>';
+    }
+    html+='</tr>';
+  }
+  c.innerHTML=html+'</table>';
+}
+document.addEventListener('click',ev=>{
+  const c=document.getElementById('sess-cal');
+  if(c&&c.style.display!=='none'&&!c.contains(ev.target)) c.style.display='none';
+});
 
 function saveGoal(){
   const g=parseFloat(document.getElementById('goal-input').value);
@@ -889,7 +959,7 @@ function render(){
   }
   if(!liveNow) lb.style.display='none';
 
-  const sel=document.getElementById('session-select');
+  const sessBtn=document.getElementById('sess-btn');
   const cbars=document.getElementById('curve-bars');
   const cEmpty2=document.getElementById('curve-empty');
   const cLegend=document.getElementById('curve-legend');
@@ -898,15 +968,14 @@ function render(){
   const lgNote=document.getElementById('livegame-note');
   const colorMap={};
   if(!sessions.length){
-    sel.innerHTML='<option>אין שידורים עדיין</option>';
+    sessBtn.textContent='אין שידורים עדיין';
     cbars.innerHTML=''; cEmpty2.style.display='block'; cLegend.innerHTML=''; sessStat.textContent='';
     lgRows.innerHTML=''; lgNote.style.display='';
   } else {
     // שמור את הבחירה לפי start כדי שלא תתאפס כשמתווסף שידור חדש
-    const prevStart=sel.value;
-    sel.innerHTML=sessions.map(s=>`<option value="${s.start}">${s.label} · שיא ${fmt(s.peak)}</option>`).join('');
-    sel.value=sessions.some(s=>s.start===prevStart)?prevStart:sessions[0].start;
-    const sess=sessions.find(s=>s.start===sel.value)||sessions[0];
+    selSess=effSel();
+    const sess=sessions.find(s=>s.start===selSess)||sessions[0];
+    sessBtn.textContent='📅 '+sess.label+' · שיא '+fmt(sess.peak);
     const pts=sess.points;
     pts.forEach(p=>{ if(!p.spike) gameColor(p.g,colorMap); });   // צבע רק למשחקים אמיתיים
     const durMin=Math.round((new Date(sess.end)-new Date(sess.start))/60000);
