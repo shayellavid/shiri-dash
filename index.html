@@ -232,9 +232,9 @@
   <div class="sec-title">יעד החודש</div>
   <div class="goal-card">
     <div class="goal-head">
-      <div class="txt">יעד עוקבים חדשים ל-Kick לחודש: <b class="num" id="goal-display">—</b></div>
+      <div class="txt">היעד: להגיע ל-<b class="num" id="goal-display">—</b> עוקבים ב-Kick</div>
       <div class="edit">
-        <input type="number" id="goal-input" placeholder="למשל 400" style="width:120px">
+        <input type="number" id="goal-input" placeholder="למשל 3000" style="width:120px">
         <button class="btn-ghost" onclick="saveGoal()">עדכן יעד</button>
       </div>
     </div>
@@ -398,7 +398,7 @@
 
 
 <script>
-const GOAL_KEY='shiri_goal_v2', LIVE_KEY='shiri_live_v2', MANUAL_KEY='shiri_manual_v2';
+const GOAL_KEY='shiri_goal_abs_v1', LIVE_KEY='shiri_live_v2', MANUAL_KEY='shiri_manual_v2';
 
 function lsGet(k,def){ try{const r=localStorage.getItem(k);return r?JSON.parse(r):def;}catch(e){return def;} }
 function lsSet(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){console.warn(e);} }
@@ -580,14 +580,16 @@ function render(){
   gEl.className='v num '+(growth>0?'up':growth<0?'down':'flat');
 
   const goal=lsGet(GOAL_KEY,null);
+  // עוקבים נוכחיים (מוחלט) — לחישוב התקדמות מול היעד
+  const curF=fSeries.length?fSeries[fSeries.length-1].followers:null;
   document.getElementById('goal-display').textContent=goal?fmt(goal):'—';
-  const pct=goal&&netnew!=null?Math.max(0,Math.min(100,netnew/goal*100)):0;
+  const pct=goal&&curF!=null?Math.max(0,Math.min(100,curF/goal*100)):0;
   document.getElementById('goal-bar').style.width=pct+'%';
-  document.getElementById('goal-pct').textContent=goal?Math.round(pct)+'%':'0%';
+  document.getElementById('goal-pct').textContent=goal&&curF!=null?(fmt(curF)+' / '+fmt(goal)+' · '+Math.round(pct)+'%'):'0%';
   const remEl=document.getElementById('goal-remain');
   if(!goal) remEl.textContent='קבע יעד כדי לראות התקדמות';
-  else if(netnew==null) remEl.textContent='ממתין לנתוני החודש';
-  else { const r=goal-netnew; remEl.textContent=r>0?('נשארו '+fmt(r)+' עוקבים ליעד'):'היעד הושג! 🎯'; }
+  else if(curF==null) remEl.textContent='ממתין לנתוני עוקבים';
+  else { const r=goal-curF; remEl.textContent=r>0?('נשארו '+fmt(r)+' עוקבים ליעד'):'היעד הושג! 🎯'; }
 
   // תחזית לפי קצב הגדילה בפועל (מטווח הנתונים הקיים)
   const projEl=document.getElementById('goal-proj');
@@ -602,7 +604,7 @@ function render(){
       const daysLeft=dim-now.getDate();
       const rateStr=rate>=10?fmt(rate):rate.toFixed(1);
       let txt='קצב נוכחי ~'+rateStr+' עוקבים/יום · צפי לסוף החודש: '+fmt(f1.followers+rate*daysLeft);
-      if(goal&&netnew!=null&&netnew<goal) txt+=' · יעד בעוד ~'+Math.ceil((goal-netnew)/rate)+' ימים';
+      if(goal&&curF!=null&&curF<goal) txt+=' · יעד בעוד ~'+Math.ceil((goal-curF)/rate)+' ימים';
       projEl.textContent=txt;
     } else { projEl.textContent='אין עדיין מגמת גדילה חיובית לתחזית'; }
   }
@@ -768,7 +770,7 @@ function render(){
       const W=700,H=180,L=10,R=60,T=16,B=24;
       const xs=i=>L+(W-L-R)*(i/(fs2.length-1));
       let lo=Math.min(...fs2.map(e=>e.followers)), hi=Math.max(...fs2.map(e=>e.followers));
-      const goalAbs=(goal&&fd.base!=null)?fd.base+goal:null;   // יעד אבסולוטי = בסיס החודש + היעד
+      const goalAbs=goal||null;   // היעד כבר מוחלט (להגיע ל-X עוקבים)
       if(goalAbs!=null) hi=Math.max(hi,goalAbs);
       if(hi===lo) hi=lo+1;
       const ys=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
