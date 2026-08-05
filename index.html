@@ -111,6 +111,7 @@
   .bcol .bbar{width:100%;max-width:42px;background:var(--green-dim);border:1px solid var(--green);
     border-radius:5px 5px 0 0;min-height:3px;transition:height .4s ease}
   .bcol .blabel{font-size:10px;color:var(--muted2);white-space:nowrap;direction:ltr;overflow:visible;max-width:none}
+  .bcol .cbar{width:100%;max-width:42px;background:rgba(255,61,135,.55);border-radius:2px;margin-top:2px;min-height:0}
   .chart-empty{color:var(--muted);font-size:13px;text-align:center;padding:30px 0}
   #trend-svg text{direction:ltr;unicode-bidi:embed}
 
@@ -371,6 +372,11 @@
   </div>
 </section>
 
+<section id="records-section">
+  <div class="sec-title">🏆 שיאי כל הזמנים</div>
+  <div class="grid cards" id="records-cards"></div>
+</section>
+
 <section id="botlog-section">
   <div class="sec-title">יומן חריגות בוטים</div>
   <div class="table-wrap">
@@ -461,7 +467,7 @@ function toggleStreams(){ streamsShowAll=!streamsShowAll; render(); }
 
 // ===== טאבים =====
 const TABS={
-  overview:['goal-section','funnel-section','kickcards-section','ytcards-section','wow-section','trend-section'],
+  overview:['goal-section','funnel-section','kickcards-section','ytcards-section','wow-section','trend-section','records-section'],
   lives:['laststream-section','curve-section','livegames-section','weeklive-section','streams-section'],
   analytics:['besttime-section','daily-section','botlog-section','export-section']
 };
@@ -698,9 +704,14 @@ function render(){
     if(rate>0){
       const now=new Date(), dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
       const daysLeft=dim-now.getDate();
+      const eomDate=String(dim).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0');
+      const eomProj=f1.followers+rate*daysLeft;
       const rateStr=rate>=10?fmt(rate):rate.toFixed(1);
-      let txt='קצב נוכחי ~'+rateStr+' עוקבים/יום · צפי לסוף החודש: '+fmt(f1.followers+rate*daysLeft);
-      if(goal&&curF!=null&&curF<goal) txt+=' · יעד בעוד ~'+Math.ceil((goal-curF)/rate)+' ימים';
+      let txt='קצב נוכחי ~'+rateStr+' עוקבים/יום · צפי ל-'+eomDate+': '+fmt(eomProj);
+      if(goal&&curF!=null&&curF<goal){
+        if(eomProj>=goal) txt+=' · בקצב הזה היעד יושג עד סוף החודש 🎯';
+        else txt+=' · ליעד עד '+eomDate+' צריך ~'+fmt(Math.ceil((goal-curF)/Math.max(1,daysLeft)))+' עוקבים/יום';
+      }
       projEl.textContent=txt;
     } else { projEl.textContent='אין עדיין מגמת גדילה חיובית לתחזית'; }
   }
@@ -886,6 +897,38 @@ function render(){
     }
   }
 
+  // ===== שיאי כל הזמנים =====
+  {
+    const rc=document.getElementById('records-cards');
+    const st=(window.TRACKER_DATA&&window.TRACKER_DATA.streams)||[];
+    const recs=[];
+    if(sessAll.length){
+      const b=sessAll.reduce((a,c)=>c.peak>a.peak?c:a);
+      recs.push({icon:'👀',label:'שיא צופים בלייב',val:fmt(b.peak),date:b.date});
+    }
+    const ld=st.filter(s=>s.durationMin!=null);
+    if(ld.length){
+      const b=ld.reduce((a,c)=>c.durationMin>a.durationMin?c:a);
+      recs.push({icon:'⏱️',label:'הלייב הארוך ביותר',val:Math.floor(b.durationMin/60)+':'+String(b.durationMin%60).padStart(2,'0')+' שעות',date:b.date});
+    }
+    const lc=st.filter(s=>s.chatMsgs!=null);
+    if(lc.length){
+      const b=lc.reduce((a,c)=>c.chatMsgs>a.chatMsgs?c:a);
+      recs.push({icon:'💬',label:'הכי הרבה הודעות צ\'אט',val:fmt(b.chatMsgs),date:b.date});
+    }
+    const lf=sessAll.filter(s=>s.newFollowers!=null);
+    if(lf.length){
+      const b=lf.reduce((a,c)=>c.newFollowers>a.newFollowers?c:a);
+      recs.push({icon:'➕',label:'הכי עוקבים חדשים בלייב',val:'+'+fmt(b.newFollowers),date:b.date});
+    }
+    const lv=st.filter(s=>s.vodViews!=null);
+    if(lv.length){
+      const b=lv.reduce((a,c)=>c.vodViews>a.vodViews?c:a);
+      recs.push({icon:'🎬',label:'הכי צפיות בהקלטה',val:fmt(b.vodViews),date:b.date});
+    }
+    rc.innerHTML=recs.map(r=>`<div class="card metric"><div class="label">${r.icon} ${r.label}</div><div class="value num">${r.val}</div><div class="foot num">${r.date||''}</div></div>`).join('');
+  }
+
   // ===== יומן חריגות בוטים =====
   {
     const blBody=document.getElementById('botlog-body');
@@ -1009,22 +1052,28 @@ function render(){
     const step=Math.max(1,Math.ceil(pts.length/40));
     const shown=pts.filter((_,i)=>i%step===0);
     const labelEvery=Math.max(1,Math.ceil(shown.length/8));  // ~8 תוויות שעה
+    // קצב צ'אט לכל דגימה — פס ורוד קטן מתחת לעמודות
+    const cmOf=p=>(p.cm!=null?p.cm:(p.c!=null?p.c:null));
+    const hasChat=shown.some(p=>cmOf(p)!=null&&cmOf(p)>0);
+    const cmax=hasChat?Math.max(...shown.map(p=>cmOf(p)||0),1):1;
+    const cbarOf=p=>hasChat?`<div class="cbar" style="height:${Math.round((cmOf(p)||0)/cmax*10)}px" title="💬 ${fmt(cmOf(p)||0)} הודעות צ'אט"></div>`:'';
     cbars.innerHTML=shown.map((p,idx)=>{
       const lbl=(idx%labelEvery===0)?(p.t||''):'';
       if(p.spike){   // ספייק בוטים — אפור, מקווקו, בגובה מלא, לא משפיע על הסקאלה
         return `<div class="bcol" title="בוטים ${p.t||''}: ${p.v}">
           <div class="bval" style="color:var(--muted2)">${fmt(p.v)}🤖</div>
-          <div class="bbar" style="height:133px;opacity:.45;border-color:var(--muted2);background:repeating-linear-gradient(45deg,#4a4a4a,#4a4a4a 4px,#2a2a2a 4px,#2a2a2a 8px)"></div>
-          <div class="blabel">${lbl}</div></div>`;
+          <div class="bbar" style="height:121px;opacity:.45;border-color:var(--muted2);background:repeating-linear-gradient(45deg,#4a4a4a,#4a4a4a 4px,#2a2a2a 4px,#2a2a2a 8px)"></div>
+          ${cbarOf(p)}<div class="blabel">${lbl}</div></div>`;
       }
-      const h=Math.round(p.v/maxV*130)+3, c=gameColor(p.g,colorMap);
+      const h=Math.round(p.v/maxV*118)+3, c=gameColor(p.g,colorMap);
       return `<div class="bcol" title="${(p.t||'')+' '+(p.g||'')}">
         <div class="bval" style="color:${c}">${fmt(p.v)}</div>
         <div class="bbar" style="height:${h}px;background:${c}26;border-color:${c}"></div>
-        <div class="blabel">${lbl}</div></div>`;
+        ${cbarOf(p)}<div class="blabel">${lbl}</div></div>`;
     }).join('');
     cLegend.innerHTML=Object.keys(colorMap).filter(g=>g!=='null').map(g=>
-      `<span class="leg"><span class="dot2" style="background:${colorMap[g]}"></span>${g}</span>`).join('');
+      `<span class="leg"><span class="dot2" style="background:${colorMap[g]}"></span>${g}</span>`).join('')
+      +(hasChat?`<span class="leg"><span class="dot2" style="background:rgba(255,61,135,.55)"></span>קצב צ'אט (הפס התחתון)</span>`:'');
     // לפי משחק — מהשידור הנבחר
     const games=sess.games||[];
     if(!games.length){ lgRows.innerHTML=''; lgNote.style.display=''; }
