@@ -434,8 +434,27 @@ function fmt(n){ return (n==null||isNaN(n))?'—':Math.round(n).toLocaleString('
 function monthOf(d){ return d?d.slice(0,7):''; }
 function thisMonth(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 
-const GAME_COLORS=['#53fc18','#4aa8ff','#ff3d87','#ffb020','#a970ff','#2dd4bf','#f97316','#e879f9'];
-function gameColor(name,map){ if(name==null) return '#8b917f'; if(!(name in map)) map[name]=GAME_COLORS[Object.keys(map).length%GAME_COLORS.length]; return map[name]; }
+// צבע קבוע לכל קטגוריה — עקבי בין לייבים, בין רענונים ובין מכשירים
+const GAME_FIXED={
+  'VALORANT':'#ff4655',            // אדום ולורנט
+  'Just Chatting':'#53fc18',       // ירוק קיק
+  'Counter-Strike 2':'#ffb020',
+  'Shift at Midnight':'#4aa8ff',
+  'Games + Demos':'#2dd4bf',
+  'Wordle':'#a970ff',
+  'Escape the Backrooms':'#f97316',
+  'KICK Bounties':'#e879f9',
+  'Fortnite':'#ff3d87',
+  'Among Us':'#facc15'
+};
+const GAME_COLORS=['#4aa8ff','#ff3d87','#ffb020','#a970ff','#2dd4bf','#f97316','#e879f9','#facc15'];
+function gameColor(name,map){
+  if(name==null) return '#8b917f';
+  let c=GAME_FIXED[name];
+  if(!c){ let h=0; for(let i=0;i<name.length;i++) h=(h*31+name.charCodeAt(i))>>>0; c=GAME_COLORS[h%GAME_COLORS.length]; }
+  if(map&&!(name in map)) map[name]=c;
+  return c;
+}
 
 let streamsShowAll=false;
 function toggleStreams(){ streamsShowAll=!streamsShowAll; render(); }
